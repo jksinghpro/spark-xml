@@ -65,12 +65,19 @@ class DefaultSource
       val options = XmlOptions(parameters)
       (options.charset, options.rowTag)
     }
-
-    XmlRelation(
-      () => XmlFile.withCharset(sqlContext.sparkContext, path, charset, rowTag),
-      Some(path),
-      parameters,
-      schema)(sqlContext)
+    parameters.get("xsd") match {
+      case Some(p) => new XsdXmlRelation(
+        () => XmlFile.withCharset(sqlContext.sparkContext, path, charset, rowTag),
+        Some(path),
+        parameters,
+        schema)(sqlContext
+      )
+      case None => XmlRelation(
+        () => XmlFile.withCharset(sqlContext.sparkContext, path, charset, rowTag),
+        Some(path),
+        parameters,
+        schema)(sqlContext)
+    }
   }
 
   override def createRelation(

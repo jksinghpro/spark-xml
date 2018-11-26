@@ -1,11 +1,12 @@
-# XML Data Source for Apache Spark
+# XML Data Source for Apache Spark(Added Support for xsd(XML schema definition) )
 
-[![Build Status](https://travis-ci.org/databricks/spark-xml.svg?branch=master)](https://travis-ci.org/databricks/spark-xml) [![codecov.io](http://codecov.io/github/databricks/spark-xml/coverage.svg?branch=master)](http://codecov.io/github/databricks/spark-xml?branch=master)
+### Note: This project is an extension of spark xml to support xsd 
 
 - A library for parsing and querying XML data with Apache Spark, for Spark SQL and DataFrames.
-The structure and test tools are mostly copied from [CSV Data Source for Spark](https://github.com/databricks/spark-csv).
+The structure and test tools are mostly copied from [XML Data Source for Spark](https://github.com/databricks/spark-xml).
 
 - This package supports to process format-free XML files in a distributed way, unlike JSON datasource in Spark restricts in-line JSON format.
+Apart  from the original version , i have added a support for specifying xsd in the option so as to validate xmln's against and it and parse the xmln's to dataframes.
 
 
 ## Requirements
@@ -15,41 +16,19 @@ This library requires Spark 2.0+ for 0.4.x.
 For version that works with Spark 1.x, please check for [branch-0.3](https://github.com/databricks/spark-xml/tree/branch-0.3).
 
 
-## Linking
-You can link against this library in your program at the following coordinates:
+## Usage 
 
-### Scala 2.10
-
-```
-groupId: com.databricks
-artifactId: spark-xml_2.10
-version: 0.4.1
-```
-
-### Scala 2.11
+ Clone this repo and build this project
 
 ```
-groupId: com.databricks
-artifactId: spark-xml_2.11
-version: 0.4.1
+git clone https://github.com/jksinghpro/spark-xml.git
 ```
 
-## Using with Spark shell
-This package can be added to  Spark using the `--packages` command line option.  For example, to include it when starting the spark shell:
-
-### Spark compiled with Scala 2.10
-```
-$SPARK_HOME/bin/spark-shell --packages com.databricks:spark-xml_2.10:0.4.1
-```
-
-### Spark compiled with Scala 2.11
-```
-$SPARK_HOME/bin/spark-shell --packages com.databricks:spark-xml_2.11:0.4.1
-```
 
 ## Features
 This package allows reading XML files in local or distributed filesystem as [Spark DataFrames](https://spark.apache.org/docs/1.6.0/sql-programming-guide.html).
 When reading files the API accepts several options:
+* `xsd`: XML definition of the xml data. Either the path of xsd file can be specified or xsd as a string can also be specified.Same option works for both.
 * `path`: Location of files. Similar to Spark can accept standard Hadoop globbing expressions.
 * `rowTag`: The row tag of your xml files to treat as a row. For example, in this xml `<books> <book><book> ...</books>`, the appropriate value would be `book`. Default is `ROW`. At the moment, rows containing self closing xml tags are not supported.
 * `samplingRatio`: Sampling ratio for inferring schema (0.0 ~ 1). Default is 1. Possible types are `StructType`, `ArrayType`, `StringType`, `LongType`, `DoubleType`, `BooleanType`, `TimestampType` and `NullType`, unless user provides a schema for this.
@@ -79,6 +58,8 @@ Currently it supports the shortened name usage. You can use just `xml` instead o
 ## Structure Conversion
 
 Due to the structure differences between `DataFrame` and XML, there are some conversion rules from XML data to `DataFrame` and from `DataFrame` to XML data. Note that handling attributes can be disabled with the option `excludeAttribute`.
+
+
 
 
 ### Conversion from XML to `DataFrame`
@@ -180,6 +161,48 @@ OPTIONS (path "books.xml", rowTag "book")
 
 ### Scala API
 
+#### Using XSD
+
+```scala
+import org.apache.spark.sql.SQLContext
+
+
+val sqlContext = new SQLContext(sc)
+val df = sqlContext.read
+  .format("com.databricks.spark.xml")
+  .option("rowTag", "book")
+  .option("xsd","books.xsd")
+  .load("books.xml")
+
+val df = sqlContext.read
+  .format("com.databricks.spark.xml")
+  .option("rowTag", "book")
+  .option("xsd","<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                         <xs:element name="catalog">
+                             <xs:complexType>
+                                 <xs:sequence>
+                                     <xs:element name="book" maxOccurs="unbounded" minOccurs="0">
+                                         <xs:complexType>
+                                             <xs:sequence>
+                                                 <xs:element type="xs:string" name="author"/>
+                                                 <xs:element type="xs:string" name="title"/>
+                                                 <xs:element type="xs:string" name="genre"/>
+                                                 <xs:element type="xs:double" name="price"/>
+                                                 <xs:element type="xs:date" name="publish_date"/>
+                                                 <xs:element type="xs:string" name="description"/>
+                                             </xs:sequence>
+                                             <xs:attribute type="xs:string" name="id" use="optional"/>
+                                         </xs:complexType>
+                                     </xs:element>
+                                 </xs:sequence>
+                             </xs:complexType>
+                         </xs:element>
+                     </xs:schema>")
+  .load("books.xml"
+  
+```
+
+#### Without XSD
 ```scala
 import org.apache.spark.sql.SQLContext
 import com.databricks.spark.xml._
@@ -188,7 +211,8 @@ val sqlContext = new SQLContext(sc)
 val df = sqlContext.read
   .option("rowTag", "book")
   .xml("books.xml")
-
+    
+  
 val selectedData = df.select("author", "_id")
 selectedData.write
   .option("rootTag", "books")
@@ -200,6 +224,7 @@ Alternatively you can specify the format to use instead:
 
 ```scala
 import org.apache.spark.sql.SQLContext
+
 
 val sqlContext = new SQLContext(sc)
 val df = sqlContext.read
@@ -388,9 +413,3 @@ val records = sc.newAPIHadoopFile(
   classOf[Text])
 ```
 
-## Building From Source
-This library is built with [SBT](http://www.scala-sbt.org/0.13/docs/Command-Line-Reference.html), which is automatically downloaded by the included shell script. To build a JAR file simply run `sbt/sbt package` from the project root. The build configuration includes support for both Scala 2.10 and 2.11.
-
-## Acknowledgements
-
-This project was initially created by [HyukjinKwon](https://github.com/HyukjinKwon) and donated to [Databricks](https://databricks.com).

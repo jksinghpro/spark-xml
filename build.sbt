@@ -30,9 +30,11 @@ libraryDependencies ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.apache.hadoop" % "hadoop-client" % testHadoopVersion.value % "test",
-  "org.apache.spark" %% "spark-core" % testSparkVersion.value % "test" force() exclude("org.apache.hadoop", "hadoop-client"),
-  "org.apache.spark" %% "spark-sql" % testSparkVersion.value % "test" force() exclude("org.apache.hadoop", "hadoop-client"),
-  "org.scala-lang" % "scala-library" % scalaVersion.value % "compile"
+  "org.apache.spark" %% "spark-core" % testSparkVersion.value % "compile",
+  "org.apache.spark" %% "spark-sql" % testSparkVersion.value % "compile" force() exclude("org.apache.hadoop", "hadoop-client"),
+  "org.scala-lang" % "scala-library" % scalaVersion.value % "compile",
+  "xerces" % "xercesImpl" % "2.11.0" % "compile",
+  "com.databricks" %% "spark-avro" % "4.0.0"
 )
 
 // This is necessary because of how we explicitly specify Spark dependencies
@@ -63,6 +65,11 @@ pomExtra := (
       <id>hyukjinkwon</id>
       <name>Hyukjin Kwon</name>
       <url>https://www.facebook.com/hyukjin.kwon.96</url>
+    </developer>
+    <developer>
+      <id>jksinghpro</id>
+      <name>Jaskaran singh</name>
+      <url>https://www.facebook.com/jaskarancap</url>
     </developer>
   </developers>)
 

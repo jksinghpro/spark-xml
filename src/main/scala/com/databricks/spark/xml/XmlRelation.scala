@@ -37,9 +37,9 @@ case class XmlRelation protected[spark] (
   with TableScan
   with PrunedScan {
 
-  private val logger = LoggerFactory.getLogger(XmlRelation.getClass)
+  protected val logger = LoggerFactory.getLogger(XmlRelation.getClass)
 
-  private val options = XmlOptions(parameters)
+  protected val options = XmlOptions(parameters)
 
   override val schema: StructType = {
     Option(userSchema).getOrElse {
