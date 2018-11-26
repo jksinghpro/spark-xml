@@ -6,7 +6,8 @@
 The structure and test tools are mostly copied from [XML Data Source for Spark](https://github.com/databricks/spark-xml).
 
 - This package supports to process format-free XML files in a distributed way, unlike JSON datasource in Spark restricts in-line JSON format.
-Apart  from the original version , i have added a support for specifying xsd in the option so as to validate xmln's against and it and parse the xmln's to dataframes.
+
+- Apart  from the original version , i have added a support for specifying xsd in the option so as to validate xmln's against and it and parse the xmln's to dataframes.
 
 
 ## Requirements
@@ -412,4 +413,8 @@ val records = sc.newAPIHadoopFile(
   classOf[LongWritable],
   classOf[Text])
 ```
+
+#ISSUES
+
+- Issue Tracker: https://github.com/jksinghpro/spark-xml/issues
 
